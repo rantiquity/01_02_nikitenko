@@ -1,0 +1,45 @@
+name: Autograding R
+
+on: [push]
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Скачиваем код, который отправил студент
+      - name: Checkout student code
+        uses: actions/checkout@v5
+
+      # 2. Скачиваем скрытые тесты из вашего приватного репозитория
+      - name: Fetch hidden tests
+        uses: actions/checkout@v5
+        with:
+          repository: 'rantiquity/01_02_Tabular_Test'
+          token: ${{ secrets.TESTS_DOWNLOAD_TOKEN }}
+
+      # 3. Разворачиваем среду R
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      # 4. Устанавливаем ВСЕ пакеты, необходимые для тестов
+      - name: Install dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::testthat
+            any::dplyr
+            any::tidyr
+            any::gutenbergr
+
+      # 5. Запускаем скрытые тесты с гарантированным падением при ошибке
+      - name: Run hidden tests
+        run: |
+          Rscript -e '
+            results <- testthat::test_file("test_hidden.R")
+            df <- as.data.frame(results)
+            if (sum(df$failed) > 0 || sum(df$error) > 0) {
+              stop("Тесты не пройдены!")
+            }
+          '
