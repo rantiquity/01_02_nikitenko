@@ -10,7 +10,7 @@ works <- gutenberg_works()
 # после этого выберите два столбца: author, title
 my_data <- works |> 
   # ваш код здесь
-  filter(gutenberg_author_id == c(65, 410))  |>
+  filter(gutenberg_author_id %in% c(65, 410))  |>
   select (author, title)
 
 # (2) Используйте функцию separate(), чтобы разделить 
